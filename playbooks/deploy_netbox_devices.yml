@@ -1,0 +1,23 @@
+---
+- name: Deploy devices to Netbox
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    devices:
+      - name: "web-server-01"
+        role: "web-server"
+        site: "datacenter-1"
+      - name: "db-server-01"
+        role: "database"
+        site: "datacenter-1"
+
+  tasks:
+    - name: Deploy each device
+      ansible.builtin.include_role:
+        name: netbox_device
+      vars:
+        device_name: "{{ item.name }}"
+        device_role: "{{ item.role }}"
+        site_name: "{{ item.site }}"
+      loop: "{{ devices }}"

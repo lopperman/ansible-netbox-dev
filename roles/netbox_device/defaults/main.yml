@@ -1,0 +1,9 @@
+---
+# Default variables for netbox_device role
+netbox_url: "{{ lookup('env', 'NETBOX_URL') | default('http://netbox:8000', true) }}"
+netbox_token: "{{ lookup('env', 'NETBOX_TOKEN') | default('0123456789abcdef0123456789abcdef01234567', true) }}"
+
+device_name: "test-device-01"
+device_role: "server"
+device_type: "generic-server"
+site_name: "default-site"

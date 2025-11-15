@@ -1,0 +1,39 @@
+---
+# Main tasks for netbox_device role
+- name: Display Netbox connection info
+  ansible.builtin.debug:
+    msg: "Connecting to Netbox at {{ netbox_url }}"
+
+- name: Check if required variables are set
+  ansible.builtin.assert:
+    that:
+      - netbox_url is defined
+      - netbox_token is defined
+      - device_name is defined
+    fail_msg: "Required variables are not set"
+    success_msg: "All required variables are present"
+
+- name: Example task - Create file with device info
+  ansible.builtin.copy:
+    content: |
+      Device Name: {{ device_name }}
+      Device Role: {{ device_role }}
+      Site: {{ site_name }}
+      Netbox URL: {{ netbox_url }}
+    dest: "/tmp/{{ device_name }}.txt"
+    mode: '0644'
+  changed_when: false
+
+# Note: To actually create devices in Netbox, you would use the netbox.netbox collection
+# Example (commented out as it requires a running Netbox instance):
+# - name: Create device in Netbox
+#   netbox.netbox.netbox_device:
+#     netbox_url: "{{ netbox_url }}"
+#     netbox_token: "{{ netbox_token }}"
+#     data:
+#       name: "{{ device_name }}"
+#       device_role: "{{ device_role }}"
+#       device_type: "{{ device_type }}"
+#       site: "{{ site_name }}"
+#     state: present
+#     validate_certs: false

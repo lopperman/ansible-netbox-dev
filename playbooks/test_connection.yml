@@ -1,0 +1,15 @@
+---
+- name: Test basic Ansible connectivity
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: Ping all hosts
+      ansible.builtin.ping:
+
+    - name: Display facts
+      ansible.builtin.debug:
+        msg: |
+          Hostname: {{ ansible_hostname }}
+          OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+          Python: {{ ansible_python_version }}

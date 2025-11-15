@@ -1,0 +1,13 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: Include netbox_device role
+      ansible.builtin.include_role:
+        name: netbox_device
+      vars:
+        device_name: "molecule-test-device"
+        device_role: "test-server"
+        site_name: "test-site"

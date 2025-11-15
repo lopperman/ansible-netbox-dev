@@ -1,0 +1,143 @@
+services:
+  # Ansible development container with Molecule
+  ansible:
+    build:
+      context: .
+      dockerfile: Dockerfile.ansible
+    container_name: ansible-dev
+    volumes:
+      - ./ansible:/ansible
+      - ./roles:/ansible/roles
+      - ./playbooks:/ansible/playbooks
+      - /var/run/docker.sock:/var/run/docker.sock  # For Molecule Docker driver
+    working_dir: /ansible
+    environment:
+      - ANSIBLE_HOST_KEY_CHECKING=False
+      - MOLECULE_DISTRO=ubuntu2204
+      - NETBOX_URL=http://netbox:8000
+      - NETBOX_TOKEN=${NETBOX_TOKEN:-0123456789abcdef0123456789abcdef01234567}
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    networks:
+      - ansible-net
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+  # Netbox container
+  netbox:
+    image: netboxcommunity/netbox:v4.1.6
+    container_name: netbox
+    ports:
+      - "8000:8080"
+    environment:
+      - SUPERUSER_NAME=admin
+      - SUPERUSER_EMAIL=admin@example.com
+      - SUPERUSER_PASSWORD=admin
+      - SUPERUSER_API_TOKEN=0123456789abcdef0123456789abcdef01234567
+      - ALLOWED_HOST=*
+      - DB_HOST=postgres
+      - DB_NAME=netbox
+      - DB_USER=netbox
+      - DB_PASSWORD=netbox
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=netbox
+      - SECRET_KEY=APMHsR51PrF6UqH_xE7ZOZ92OJHDWrLpJ6CYUYX79XssWjD8v4SZbdRnW_EM_EwfJ-0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ansible-net
+
+  # PostgreSQL for Netbox
+  postgres:
+    image: postgres:15-alpine
+    container_name: netbox-postgres
+    environment:
+      - POSTGRES_DB=netbox
+      - POSTGRES_USER=netbox
+      - POSTGRES_PASSWORD=netbox
+    volumes:
+      - netbox-postgres-data:/var/lib/postgresql/data
+    networks:
+      - ansible-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U netbox"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Netbox
+  redis:
+    image: redis:7-alpine
+    container_name: netbox-redis
+    command: redis-server --requirepass netbox
+    volumes:
+      - netbox-redis-data:/data
+    networks:
+      - ansible-net
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a netbox ping | grep PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Semaphore - Ansible Web UI
+  semaphore:
+    image: semaphoreui/semaphore:latest
+    container_name: semaphore
+    ports:
+      - "3000:3000"
+    environment:
+      - SEMAPHORE_DB_DIALECT=postgres
+      - SEMAPHORE_DB_HOST=semaphore-postgres
+      - SEMAPHORE_DB_PORT=5432
+      - SEMAPHORE_DB_USER=semaphore
+      - SEMAPHORE_DB_PASS=semaphore
+      - SEMAPHORE_DB_NAME=semaphore
+      - SEMAPHORE_ADMIN=admin
+      - SEMAPHORE_ADMIN_PASSWORD=admin
+      - SEMAPHORE_ADMIN_NAME=Admin User
+      - SEMAPHORE_ADMIN_EMAIL=admin@localhost
+      - SEMAPHORE_ACCESS_KEY_ENCRYPTION=gs72mPntFATGJs9qK0pQ0rKtfidlexiMjYCH9gWKhTU=
+      - ANSIBLE_HOST_KEY_CHECKING=False
+    volumes:
+      - ./ansible:/ansible
+      - ./roles:/ansible/roles
+      - ./playbooks:/ansible/playbooks
+      - ./ansible/inventory:/ansible/inventory
+      - semaphore-data:/tmp/semaphore
+    depends_on:
+      semaphore-postgres:
+        condition: service_healthy
+    networks:
+      - ansible-net
+
+  # PostgreSQL for Semaphore
+  semaphore-postgres:
+    image: postgres:15-alpine
+    container_name: semaphore-postgres
+    environment:
+      - POSTGRES_DB=semaphore
+      - POSTGRES_USER=semaphore
+      - POSTGRES_PASSWORD=semaphore
+    volumes:
+      - semaphore-postgres-data:/var/lib/postgresql/data
+    networks:
+      - ansible-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U semaphore"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  ansible-net:
+    driver: bridge
+
+volumes:
+  netbox-postgres-data:
+  netbox-redis-data:
+  semaphore-postgres-data:
+  semaphore-data:
