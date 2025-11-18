@@ -103,6 +103,7 @@ services:
       - SEMAPHORE_ACCESS_KEY_ENCRYPTION=gs72mPntFATGJs9qK0pQ0rKtfidlexiMjYCH9gWKhTU=
       - ANSIBLE_HOST_KEY_CHECKING=False
     volumes:
+      - .:/project
       - ./ansible:/ansible
       - ./roles:/ansible/roles
       - ./playbooks:/ansible/playbooks

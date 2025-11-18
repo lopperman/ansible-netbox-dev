@@ -1,0 +1,8 @@
+required_inputs:
+  - name: management_ip
+    description: "Management IP"
+    regex: '^((25[0-5]|(2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|(2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))$'
+
+  - name: fqdn
+    description: "Fully Qualified Domain Name"
+    regex: '^(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*\.?$'

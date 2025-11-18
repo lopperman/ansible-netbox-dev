@@ -1,0 +1,54 @@
+---
+- name: "Load Input Schema"
+  ansible.builtin.include_vars:
+    file: "{{ role_path }}/validation/vars/input_schema.yml"
+    name: schema
+  
+- name: "Fail is missing required inputs"
+  vars:
+    missing_inputs: >-
+      {{
+        schema.required_inputs
+        | rejectattr('name', 'in', input_data.keys() | list)
+        | map(attribute='description')
+        | list
+      }}
+  ansible.builtin.fail:
+    msg: "Missing required inputs: {{ missing_inputs | join(', ') }}"
+  when: missing_inputs | length > 0
+
+- name: "Validate Input Formats"
+  vars:
+    invalid_inputs: >-
+      {{
+        schema.required_inputs
+        | selectattr('name', 'in', input_data.keys() | list)
+        | selectattr('regex', 'defined')
+        | selectattr('name', 'extract', input_data)
+        | rejectattr('name', 'match', attribute='regex')
+        | map(attribute='description')
+        | list
+      }}
+  ansible.builtin.fail:
+    msg: "Invalid input formats for: {{ invalid_inputs | join(', ') }}"
+  when: invalid_inputs | length > 0
+
+# Regex match input var if provided
+- name: "Validate Variable Regex"
+  vars:
+    regex_validations: >-
+      {{
+        schema.regex_validations
+        | selectattr('name', 'in', input_data.keys() | list)
+      }}
+    invalid_regex_inputs: >-
+      {{
+        regex_validations
+        | selectattr('name', 'extract', input_data)
+        | rejectattr('name', 'match', attribute='regex')
+        | map(attribute='description')
+        | list
+      }}
+  ansible.builtin.fail:
+    msg: "Invalid input formats for: {{ invalid_regex_inputs | join(', ') }}"
+  when: invalid_regex_inputs | length > 0
