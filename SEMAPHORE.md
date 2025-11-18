@@ -4,7 +4,7 @@ Semaphore provides a modern web interface to run and manage your Ansible playboo
 
 ## Access Semaphore
 
-Open your browser to: **http://localhost:3000**
+Open your browser to: **http://localhost:3001**
 
 **Default Login:**
 - Username: `admin`
@@ -205,7 +205,7 @@ Use a script that generates inventory (advanced)
 ### Method 1: Edit on Host
 Your playbooks are in:
 ```
-/Users/[username]/projects/molecule_ans/playbooks/
+/Users/[username]/projects/ansible-netbox-dev/playbooks/
 ```
 
 Edit them with your favorite editor, and they're immediately available in Semaphore!
@@ -290,12 +290,12 @@ make logs-semaphore
 ## Resources
 
 - Semaphore Docs: https://docs.semaphoreui.com/
-- Your playbooks: `/Users/[username]/projects/molecule_ans/playbooks/`
-- Access URL: http://localhost:3000
+- Your playbooks: `/Users/[username]/projects/ansible-netbox-dev/playbooks/`
+- Access URL: http://localhost:3001
 
 ## Next Steps
 
-1. Log in to Semaphore at http://localhost:3000
+1. Log in to Semaphore at http://localhost:3001
 2. Create your first project
 3. Set up inventory and repository
 4. Create a template for `test_connection.yml`

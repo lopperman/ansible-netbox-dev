@@ -25,11 +25,25 @@ RUN pip install --no-cache-dir \
     pytest-testinfra==9.0.0 \
     yamllint==1.33.0
 
-# Install Ansible collections
-RUN ansible-galaxy collection install \
-    community.general \
-    community.docker \
-    netbox.netbox
+# Install Ansible collections with retry logic
+RUN success=false; \
+    for i in 1 2 3; do \
+        echo "Attempt $i of 3..."; \
+        if ansible-galaxy collection install \
+            community.general \
+            community.docker \
+            netbox.netbox; then \
+            success=true; \
+            break; \
+        else \
+            echo "Retry $i failed, waiting 5 seconds..."; \
+            sleep 5; \
+        fi; \
+    done; \
+    if [ "$success" = "false" ]; then \
+        echo "ERROR: Failed to install Ansible collections after 3 attempts"; \
+        exit 1; \
+    fi
 
 # Create working directory
 WORKDIR /ansible
